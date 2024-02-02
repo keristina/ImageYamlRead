@@ -1,0 +1,69 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ${itemAppName}
+  labels:
+    app: ${itemAppName}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${itemAppName}
+  template:
+    metadata:
+      labels:
+        app: ${itemAppName}
+    spec:
+      imagePullSecrets:
+        - name: cnharbor.msdi.cn-registry
+      containers:
+        - name: ${itemAppName}
+          image: cnharbor.msdi.cn/${itemAppRegistryProject}/${itemAppName}:${tagName}
+          ports:
+            - containerPort: ${itemAppPort}
+              protocol: TCP
+          env:
+            - name: CONSUL-HOST
+              value: consul
+            - name: CONSUL-PORT
+              value: '8500'
+            - name: CONSUL_TOKEN
+              value: ${consulToken}
+            - name: spring.cloud.client.ip-address
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: SPRING-CLOUD-CLIENT-PORT
+              ### 这里需要nodeport ###
+              value: '${item}'
+          resources:
+            requests:
+              cpu: "${itemAppResourcesRequestsCpu}"
+              memory: '${itemAppResourcesRequestsMemory}'
+            limits:
+              cpu: '${itemAppResourcesLimitsCpu}'
+              memory: '${itemAppResourcesLimitsMemory}'
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: ${itemAppPort}
+              scheme: HTTP
+            initialDelaySeconds: 180
+            timeoutSeconds: 10
+            periodSeconds: 20
+            successThreshold: 1
+            failureThreshold: 3
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - ${itemAppName}
+                  - key: namespace
+                    operator: In
+                    values:
+                      - ${projectName}
+              topologyKey: kubernetes.io/hostname

@@ -1,0 +1,27 @@
+spring:
+  redis:
+    host: 10.219.23.56
+    port: 11886
+    password: zny@msdI.c0m
+
+
+yamlPath: /yaml
+
+jobRecordId: fxx
+
+valuesFile: values
+
+consulFile: templates/consul
+
+deploymentsFile: templates/deployments
+
+serviceFile: templates/service
+
+pvcFile: templates/pvc
+
+name_prefix: "pt_name:"
+
+file-path: D:\program\ImageYamlRead\target\ImageYamlRead.jar
+
+project:
+  type: jar
